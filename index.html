@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Contenido - DreamNovel Studio</title>
+    
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            purple: '#a78bfa', /* Un morado suave y bonito */
+                            pink: '#f472b6',   /* Un rosa vibrante pero elegante */
+                            bg: '#fafafa'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #ffffff;
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(167, 139, 250, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .card-shadow:hover {
+            box-shadow: 0 15px 35px rgba(167, 139, 250, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .expandable-content {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.5s ease-in-out, opacity 0.4s ease-in-out;
+            opacity: 0;
+        }
+
+        .expandable-content.open {
+            grid-template-rows: 1fr;
+            opacity: 1;
+        }
+
+        .expandable-inner {
+            overflow: hidden;
+        }
+
+        .icon-rotate {
+            transition: transform 0.5s ease;
+        }
+        
+        .open .icon-rotate {
+            transform: rotate(135deg);
+        }
+
+        /* Estilo para el contenedor multimedia grande */
+        .media-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        video::-webkit-media-controls {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen py-10 px-4">
+
+    <div class="max-w-4xl mx-auto">
+        
+        <!-- HEADER -->
+        <header class="flex flex-col items-center text-center bg-white rounded-3xl p-8 mb-12 card-shadow border-b-4 border-brand-purple">
+            <div class="w-24 h-24 mb-4 bg-purple-50 rounded-2xl overflow-hidden flex items-center justify-center border-2 border-brand-purple/20">
+                <img src="logo.png" alt="Logo DreamNovel" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <i data-lucide="sparkles" class="text-brand-purple hidden w-12 h-12"></i>
+            </div>
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">Calendario de Contenido</h1>
+            <p class="text-brand-pink font-semibold text-xl mt-2 italic">DreamNovel Studio</p>
+        </header>
+
+        <!-- CONTENEDOR DEL CALENDARIO (UNA SOLA COLUMNA) -->
+        <main id="calendar-container" class="flex flex-col gap-8">
+            <!-- Las tarjetas se generan aquí -->
+        </main>
+
+    </div>
+
+    <script>
+        const contentData = [
+            { id: 'lunes', day: 'Lunes', activity: 'Post Instagram – Parche en progreso', type: 'image', time: '18:00', location: 'Instagram', duration: 'Permanente', objective: 'Informar sobre mejoras y feedback.', image: 'lunes-img.jpg' },
+            { id: 'martes', day: 'Martes', activity: 'TikTok – Misterio campus', type: 'video', time: '20:00', location: 'TikTok', duration: '15s', objective: 'Generar intriga y atraer nuevos usuarios.', video: 'martes-video.mp4' },
+            { id: 'miercoles', day: 'Miércoles', activity: 'Post Instagram – Interacción Lucas', type: 'image', time: '19:00', location: 'Instagram', duration: 'Permanente', objective: 'Fomentar engagement de la comunidad.', image: 'miercoles-img.jpg' },
+            { id: 'jueves', day: 'Jueves', activity: 'Post Instagram – Parche finalizado', type: 'image', time: '18:00', location: 'Instagram', duration: 'Permanente', objective: 'Reforzar confianza en la marca.', image: 'jueves-img.jpg' },
+            { id: 'viernes', day: 'Viernes', activity: 'Post Instagram – Nuevo juego (Starlight)', type: 'image', time: '20:00', location: 'Instagram', duration: 'Permanente', objective: 'Generar expectación por nuevos proyectos.', image: 'viernes-img.jpg' },
+            { id: 'sabado', day: 'Sábado', activity: 'TikTok – Vídeo emocional estrellas', type: 'video', time: '21:00', location: 'TikTok', duration: '15s', objective: 'Atraer público de historias románticas.', video: 'sabado-video.mp4' },
+            { id: 'domingo', day: 'Domingo', activity: 'Post Instagram – Behind the scenes', type: 'image', time: '19:00', location: 'Instagram', duration: 'Permanente', objective: 'Humanizar la marca y mostrar el proceso.', image: 'domingo-img.jpg' }
+        ];
+
+        function renderCalendar() {
+            const container = document.getElementById('calendar-container');
+            
+            contentData.forEach((data) => {
+                const isVideo = data.type === 'video';
+                
+                const cardHTML = `
+                    <div class="bg-white rounded-[2.5rem] card-shadow border-l-8 border-brand-purple overflow-hidden">
+                        
+                        <!-- Header de tarjeta -->
+                        <div class="p-8 cursor-pointer flex justify-between items-center toggle-btn" data-id="${data.id}">
+                            <div class="flex items-center gap-6">
+                                <div class="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center text-brand-purple">
+                                    <i data-lucide="${isVideo ? 'video' : 'image'}" class="w-8 h-8"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-3xl font-bold text-gray-800">${data.day}</h2>
+                                    <p class="text-lg text-gray-500 font-medium">${data.activity}</p>
+                                </div>
+                            </div>
+                            <button class="w-14 h-14 rounded-full bg-purple-100 text-brand-purple flex items-center justify-center transition-transform">
+                                <i data-lucide="plus" class="w-8 h-8 icon-rotate"></i>
+                            </button>
+                        </div>
+
+                        <!-- Contenido Desplegable -->
+                        <div id="content-${data.id}" class="expandable-content bg-purple-50/30">
+                            <div class="expandable-inner p-8 pt-0">
+                                
+                                <!-- Detalles -->
+                                <div class="flex flex-wrap gap-8 mb-8 mt-4 p-6 bg-white rounded-2xl border border-purple-100">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="clock" class="text-brand-pink"></i>
+                                        <span class="font-semibold">${data.time}</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="map-pin" class="text-brand-purple"></i>
+                                        <span class="font-semibold">${data.location}</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="target" class="text-gray-400"></i>
+                                        <span class="text-gray-600 italic">${data.objective}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Multimedia Grande -->
+                                <div class="media-container mb-4">
+                                    ${isVideo ? `
+                                        <div class="relative group">
+                                            <video id="vid-${data.id}" src="${data.video}" class="w-full h-auto block" loop playsinline></video>
+                                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                                <div class="flex gap-4">
+                                                    <button onclick="togglePlay('${data.id}')" class="p-5 bg-white rounded-full text-brand-purple shadow-2xl hover:scale-110 transition-transform">
+                                                        <i id="play-icon-${data.id}" data-lucide="play" class="w-8 h-8 fill-current"></i>
+                                                    </button>
+                                                    <button onclick="toggleMute('${data.id}')" class="p-5 bg-white/20 backdrop-blur rounded-full text-white hover:bg-white/40">
+                                                        <i id="mute-icon-${data.id}" data-lucide="volume-x" class="w-8 h-8"></i>
+                                                    </button>
+                                                    <button onclick="fullscreen('${data.id}')" class="p-5 bg-white/20 backdrop-blur rounded-full text-white hover:bg-white/40">
+                                                        <i data-lucide="maximize" class="w-8 h-8"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="absolute bottom-0 left-0 right-0 h-2 bg-white/20">
+                                                <div id="progress-${data.id}" class="h-full bg-brand-pink w-0 transition-all duration-100"></div>
+                                            </div>
+                                        </div>
+                                    ` : `
+                                        <img src="${data.image}" class="w-full h-auto max-h-[600px] object-cover" alt="Imagen del día">
+                                    `}
+                                </div>
+                                <p class="text-center text-sm text-gray-400 mt-2">${isVideo ? 'Formato: Video MP4' : 'Formato: Imagen JPG'}</p>
+
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+
+            lucide.createIcons();
+            setupAccordions();
+            setupVideoProgress();
+        }
+
+        function setupAccordions() {
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const content = document.getElementById(`content-${id}`);
+                    const iconParent = this.querySelector('.bg-purple-100');
+                    
+                    const isOpen = content.classList.contains('open');
+                    
+                    if(!isOpen) {
+                        content.classList.add('open');
+                        this.parentElement.classList.add('open');
+                    } else {
+                        content.classList.remove('open');
+                        this.parentElement.classList.remove('open');
+                        const video = document.getElementById(`vid-${id}`);
+                        if(video) video.pause();
+                    }
+                    lucide.createIcons();
+                });
+            });
+        }
+
+        window.togglePlay = function(id) {
+            const video = document.getElementById(`vid-${id}`);
+            const icon = document.getElementById(`play-icon-${id}`);
+            if(video.paused) {
+                video.play().then(() => {
+                    icon.setAttribute('data-lucide', 'pause');
+                    lucide.createIcons();
+                }).catch(e => console.warn("Archivo no encontrado"));
+            } else {
+                video.pause();
+                icon.setAttribute('data-lucide', 'play');
+                lucide.createIcons();
+            }
+        };
+
+        window.toggleMute = function(id) {
+            const video = document.getElementById(`vid-${id}`);
+            const icon = document.getElementById(`mute-icon-${id}`);
+            video.muted = !video.muted;
+            icon.setAttribute('data-lucide', video.muted ? 'volume-x' : 'volume-2');
+            lucide.createIcons();
+        };
+
+        window.fullscreen = function(id) {
+            const video = document.getElementById(`vid-${id}`);
+            if (video.requestFullscreen) video.requestFullscreen();
+            else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+            else if (video.msRequestFullscreen) video.msRequestFullscreen();
+        };
+
+        function setupVideoProgress() {
+            contentData.filter(d => d.type === 'video').forEach(data => {
+                const video = document.getElementById(`vid-${data.id}`);
+                const bar = document.getElementById(`progress-${data.id}`);
+                video.addEventListener('timeupdate', () => {
+                    bar.style.width = `${(video.currentTime / video.duration) * 100}%`;
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', renderCalendar);
+    </script>
+</body>
+</html>
